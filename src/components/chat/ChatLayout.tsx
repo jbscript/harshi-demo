@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { SendHorizontal, Activity, MessageSquare } from "lucide-react";
+import { Activity, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ChatArea } from "./ChatArea";
+import type { Message } from "./types";
 
 import {
   Dialog,
@@ -12,13 +13,54 @@ import {
 } from "@/components/ui/dialog";
 
 export function ChatLayout() {
-  const [query, setQuery] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendQuery = () => {
-    if (!query.trim()) return;
-    console.log("Sending query:", query);
-    // Logic to handle query can go here
-    setQuery("");
+  const handleSendMessage = async (content: string) => {
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content,
+      role: "user",
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/golf/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+  "question": content,
+  "user_id": "string",
+  "conversation": "",
+  "similar_queries": ""
+}),
+      });
+
+      const data = await response.json();
+      console.log("Response data:", data);
+      
+      // Add AI response
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.answer.content || "No response",
+        role: "assistant",
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Error communicating with the server",
+        role: "assistant",
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -60,11 +102,19 @@ export function ChatLayout() {
                 <DialogHeader>
                   <DialogTitle>Graph Visualization</DialogTitle>
                 </DialogHeader>
-                <div className="flex-1 border rounded-md bg-muted/10 flex items-center justify-center">
+                {/* <div className="flex-1 border rounded-md bg-muted/10 flex items-center justify-center">
                   <span className="text-muted-foreground">
                     Graph Content Goes Here
                   </span>
-                </div>
+                </div> */}
+                <iframe
+      src="https://example.com"
+      title="Example Website"
+      width="100%"
+      height="500px"
+      // Optional: Apply security restrictions
+      sandbox="allow-scripts allow-forms allow-popups allow-same-origin" 
+    />
               </DialogContent>
             </Dialog>
           </div>
@@ -74,56 +124,17 @@ export function ChatLayout() {
         <div className="flex flex-1 flex-col h-full relative min-w-0">
           {/* 2. Main Workspace (Canvas) */}
           <main className="flex-1 relative overflow-hidden bg-muted/10">
-            {/* Grid Background Pattern */}
-            <div
-              className="absolute inset-0 pointer-events-none opacity-[0.4]"
-              style={{
-                backgroundImage: `radial-gradient(circle, #a1a1aa 1px, transparent 1px)`,
-                backgroundSize: `24px 24px`,
-              }}
+            {/* Chat Area */}
+            <ChatArea
+              messages={messages}
+              isLoading={isLoading}
+              onSendMessage={handleSendMessage}
             />
-
-            {/* Agent Configuration Box */}
-            <div className="absolute top-8 left-8 w-80 rounded-xl border bg-card/95 backdrop-blur-sm shadow-lg p-5 z-10">
-              <div className="flex items-center gap-2 mb-4 border-b pb-2">
-                <span className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                  Agent:
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="text-sm font-medium text-foreground">
-                  Fallback Agent Response:
-                </h3>
-                <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-1">
-                  <li>Hi there!</li>
-                  <li>How can I assist you with the Testcase system today?</li>
-                </ul>
-              </div>
-            </div>
           </main>
 
           {/* 3. Bottom Control Bar */}
           <footer className="h-20 border-t bg-background flex items-center px-6 gap-6 z-20">
-            <div className="flex-1 relative flex items-center max-w-6xl mx-auto w-full">
-              <div className="relative w-full flex items-center">
-                <Input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Query here..."
-                  className="w-full pr-12 h-11 rounded-full border-muted-foreground/20 focus-visible:ring-teal-600/20 shadow-sm bg-muted/5 pl-4"
-                  onKeyDown={(e) => e.key === "Enter" && handleSendQuery()}
-                />
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={handleSendQuery}
-                  className="absolute right-1.5 h-8 w-8 rounded-full hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-600"
-                >
-                  <SendHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+            {/* ChatArea handles the input */}
           </footer>
         </div>
       </div>
