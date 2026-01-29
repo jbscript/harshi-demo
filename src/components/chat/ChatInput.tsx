@@ -27,7 +27,7 @@ export function ChatInput({ onSendMessage, isLoading }: ChatInputProps) {
   };
 
   return (
-    <div className="p-4 border-t bg-background">
+    <div className="bg-background">
       <div className="relative flex items-end gap-2 max-w-3xl mx-auto">
         <Textarea
           ref={textareaRef}

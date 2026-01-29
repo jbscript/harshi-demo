@@ -2,8 +2,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { Message } from "./types";
 import { cn } from "@/lib/utils";
+import { useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Bot, User } from "lucide-react";
-import { useEffect, useRef } from "react";
 
 interface MessageListProps {
   messages: Message[];
@@ -16,17 +18,12 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
-      const scrollContainer = scrollRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]",
-      );
-      if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-      }
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isLoading]);
 
   return (
-    <ScrollArea ref={scrollRef} className="flex-1 p-4 pb-0">
+    <ScrollArea className="flex-1 h-full p-4 pb-0">
       <div className="flex flex-col gap-6 max-w-3xl mx-auto pb-10">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-[50vh] text-center gap-4">
@@ -64,8 +61,28 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
               <div className="font-semibold text-sm">
                 {message.role === "assistant" ? "AI Assistant" : "You"}
               </div>
-              <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                {message.content}
+              <div className="text-sm leading-relaxed overflow-hidden">
+                {message.role === "assistant" ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a
+                            {...props}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          />
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                )}
               </div>
             </div>
           </div>
@@ -88,6 +105,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
             </div>
           </div>
         )}
+        <div ref={scrollRef} />
       </div>
     </ScrollArea>
   );

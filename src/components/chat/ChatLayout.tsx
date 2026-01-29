@@ -131,11 +131,6 @@ export function ChatLayout() {
               onSendMessage={handleSendMessage}
             />
           </main>
-
-          {/* 3. Bottom Control Bar */}
-          <footer className="h-20 border-t bg-background flex items-center px-6 gap-6 z-20">
-            {/* ChatArea handles the input */}
-          </footer>
         </div>
       </div>
     </div>
