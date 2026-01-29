@@ -1,140 +1,92 @@
 import { useState } from "react";
-import { ChatSidebar } from "./ChatSidebar";
-import { ChatArea } from "./ChatArea";
-import type { Message, ChatSession } from "./types";
-
-const generateId = () => Math.random().toString(36).substring(2, 9);
+import { SendHorizontal, Activity, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function ChatLayout() {
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [messagesBySession, setMessagesBySession] = useState<
-    Record<string, Message[]>
-  >({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [query, setQuery] = useState("");
 
-  const handleNewChat = () => {
-    const newSessionId = generateId();
-    const newSession: ChatSession = {
-      id: newSessionId,
-      title: "New Chat",
-      date: new Date().toLocaleDateString(),
-    };
-    setSessions([newSession, ...sessions]);
-    setCurrentSessionId(newSessionId);
-    setMessagesBySession({ ...messagesBySession, [newSessionId]: [] });
+  const handleSendQuery = () => {
+    if (!query.trim()) return;
+    console.log("Sending query:", query);
+    // Logic to handle query can go here
+    setQuery("");
   };
-
-  const handleSelectSession = (id: string) => {
-    setCurrentSessionId(id);
-  };
-
-  const handleSendMessage = async (content: string) => {
-    if (!currentSessionId) {
-      // Should not happen if we ensure a session exists, but let's handle it by creating one
-      handleNewChat();
-      // We need to wait for state update or use a ref/wrapper, but for simplicity let's assume valid session
-      // Actually, react state update is async.
-      // Let's just create a temporary variable and use it if needed.
-      // But to be safe, I'll just enforce currentSessionId Check.
-      // For this demo, let's just create one if null.
-      return;
-    }
-
-    // Add user message
-    const userMessage: Message = {
-      id: generateId(),
-      role: "user",
-      content,
-    };
-
-    const sessionId = currentSessionId;
-
-    setMessagesBySession((prev) => ({
-      ...prev,
-      [sessionId]: [...(prev[sessionId] || []), userMessage],
-    }));
-
-    // Update title if it's the first message
-    const currentMessages = messagesBySession[sessionId] || [];
-    if (currentMessages.length === 0) {
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === sessionId
-            ? {
-                ...s,
-                title:
-                  content.slice(0, 30) + (content.length > 30 ? "..." : ""),
-              }
-            : s,
-        ),
-      );
-    }
-
-    setIsLoading(true);
-
-    // Mock AI Response
-    setTimeout(() => {
-      const aiMessage: Message = {
-        id: generateId(),
-        role: "assistant",
-        content: `This is a simulated AI response to: "${content}"\n\nI can write code, answer questions, and assist you with your tasks.`,
-      };
-
-      setMessagesBySession((prev) => ({
-        ...prev,
-        [sessionId]: [
-          ...(prev[sessionId] || []),
-          prev[sessionId].find((m) => m.id === userMessage.id)
-            ? aiMessage
-            : aiMessage,
-        ], // check to avoid issues if needed
-      }));
-      setIsLoading(false);
-    }, 1500);
-  };
-
-  // Ensure there is at least one session on mount?
-  // Or show empty state.
-  // Let's create a "New Chat" button click simulation or just empty state.
-  // Better: If no session, show empty state or just select none.
-  // Actually, if currentsSessionId is null, show a welcome screen or just empty chat area.
-  // I'll handle null session in render.
-
-  const currentMessages = currentSessionId
-    ? messagesBySession[currentSessionId] || []
-    : [];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <ChatSidebar
-        sessions={sessions}
-        currentSessionId={currentSessionId}
-        onSelectSession={handleSelectSession}
-        onNewChat={handleNewChat}
-      />
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-        {currentSessionId ? (
-          <ChatArea
-            messages={currentMessages}
-            isLoading={isLoading}
-            onSendMessage={handleSendMessage}
-          />
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-            <h1 className="text-2xl font-bold mb-4 text-foreground">
-              Welcome to AI Chat
-            </h1>
-            <p className="mb-8">Start a new conversation to begin.</p>
-            <button
-              onClick={handleNewChat}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-            >
-              Start Chatting
-            </button>
+    <div className="flex h-screen flex-col bg-background overflow-hidden font-sans">
+      {/* 1. Top Navigation Bar */}
+      <header className="flex h-14 items-center justify-between border-b px-6 bg-background z-20 shadow-sm">
+        <h1 className="text-lg font-bold tracking-tight">
+          S.A.T.A - SAP AI enable Testing Automation
+        </h1>
+        <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+          <span className="text-sm font-medium">Chat</span>
+          <div className="relative">
+            <MessageSquare className="h-5 w-5" />
+            <span className="absolute -top-1 -right-1 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-background" />
           </div>
-        )}
+        </div>
+      </header>
+
+      {/* 2. Main Workspace (Canvas) */}
+      <main className="flex-1 relative overflow-hidden bg-muted/10">
+        {/* Grid Background Pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-[0.4]"
+          style={{
+            backgroundImage: `radial-gradient(circle, #a1a1aa 1px, transparent 1px)`,
+            backgroundSize: `24px 24px`,
+          }}
+        />
+
+        {/* Agent Configuration Box */}
+        <div className="absolute top-8 left-8 w-80 rounded-xl border bg-card/95 backdrop-blur-sm shadow-lg p-5 z-10">
+          <div className="flex items-center gap-2 mb-4 border-b pb-2">
+            <span className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+              Agent:
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-foreground">
+              Fallback Agent Response:
+            </h3>
+            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 ml-1">
+              <li>Hi there!</li>
+              <li>How can I assist you with the Testcase system today?</li>
+            </ul>
+          </div>
+        </div>
       </main>
+
+      {/* 3. Bottom Control Bar */}
+      <footer className="h-20 border-t bg-background flex items-center px-6 gap-6 z-20">
+        <Button className="bg-teal-600 hover:bg-teal-700 text-white shadow-md transition-all hover:shadow-lg gap-2 h-10 px-6 font-medium">
+          <Activity className="h-4 w-4" />
+          Graph
+        </Button>
+
+        <div className="flex-1 relative flex items-center max-w-4xl">
+          <div className="relative w-full flex items-center">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Query here..."
+              className="w-full pr-12 h-11 rounded-full border-muted-foreground/20 focus-visible:ring-teal-600/20 shadow-sm bg-muted/5 pl-4"
+              onKeyDown={(e) => e.key === "Enter" && handleSendQuery()}
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleSendQuery}
+              className="absolute right-1.5 h-8 w-8 rounded-full hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-600"
+            >
+              <SendHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
