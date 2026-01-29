@@ -33,16 +33,16 @@ export function ChatLayout() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-  "question": content,
-  "user_id": "string",
-  "conversation": "",
-  "similar_queries": ""
-}),
+          question: content,
+          user_id: "string",
+          conversation: "",
+          similar_queries: "",
+        }),
       });
 
       const data = await response.json();
       console.log("Response data:", data);
-      
+
       // Add AI response
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -108,13 +108,13 @@ export function ChatLayout() {
                   </span>
                 </div> */}
                 <iframe
-      src="https://example.com"
-      title="Example Website"
-      width="100%"
-      height="500px"
-      // Optional: Apply security restrictions
-      sandbox="allow-scripts allow-forms allow-popups allow-same-origin" 
-    />
+                  src="https://example.com"
+                  title="Example Website"
+                  width="100%"
+                  height="500px"
+                  // Optional: Apply security restrictions
+                  sandbox="allow-scripts allow-forms allow-popups allow-same-origin"
+                />
               </DialogContent>
             </Dialog>
           </div>
